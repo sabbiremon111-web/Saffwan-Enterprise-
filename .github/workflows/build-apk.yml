@@ -1,0 +1,55 @@
+
+name: Build Safwan Enterprise APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java setup
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Android SDK setup
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Prepare app folders
+        run: |
+          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/java/com/safwan/enterprise
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
+          cp AndroidManifest.xml app/src/main/
+          cp MainActivity.kt app/src/main/java/com/safwan/enterprise/
+          cp index.html app/src/main/assets/
+          cp strings.xml app/src/main/res/values/
+          cp styles.xml app/src/main/res/values/
+          cp ic_launcher.xml app/src/main/res/drawable/
+          cp "build.gradle (1).kts" app/build.gradle.kts
+
+      - name: Build APK
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Compile
+        run: gradle :app:assembleDebug
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Safwan-Enterprise-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
