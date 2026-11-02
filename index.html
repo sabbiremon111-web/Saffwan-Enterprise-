@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safwan Enterprise — Order Booking</title>
+<style>
+:root{--navy:#12345a;--blue:#1769aa;--bg:#f3f6fa;--line:#dce4ee;--green:#16834a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,"Noto Sans Bengali",sans-serif;color:#182433}
+header{background:var(--navy);color:white;padding:18px 16px}header h1{font-size:20px;margin:0}header p{margin:5px 0 0;color:#d7e5f4;font-size:13px}
+main{max-width:900px;margin:auto;padding:14px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:13px;box-shadow:0 2px 8px #17324d0a}
+h2{font-size:17px;margin:0 0 12px;color:var(--navy)}label{display:block;font-size:13px;font-weight:650;margin:10px 0 5px}
+input,select{width:100%;padding:11px;border:1px solid #cbd6e2;border-radius:9px;font-size:15px;background:white}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px}
+.product{border:1px solid var(--line);padding:10px;border-radius:10px}.product strong{display:block;font-size:14px;margin-bottom:6px}.product input{padding:8px}
+button{border:0;border-radius:9px;padding:11px 14px;background:var(--blue);color:white;font-weight:700;font-size:14px;cursor:pointer;margin:5px 4px 0 0}
+button.secondary{background:#e8eef5;color:#183653}button.green{background:var(--green)}button.red{background:#b83232}
+.small{font-size:12px;color:#637286}.stat{font-size:25px;font-weight:800;color:var(--navy)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left}th{background:#f0f4f8}
+.scroll{overflow-x:auto}.hidden{display:none}.pill{display:inline-block;background:#eaf2fb;color:#164d80;padding:4px 8px;border-radius:20px;font-size:12px;margin:2px}
+footer{text-align:center;color:#66788a;font-size:12px;padding:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}header h1{font-size:18px}}
+@media print{header,.no-print,button{display:none!important}body{background:white}.card{box-shadow:none;break-inside:avoid}main{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+<header><h1>Safwan Enterprise</h1><p>Happy Nappy • Ananna • Baby Wipes — Order Booking</p></header>
+<main>
+<section class="card">
+<h2>দোকানের তথ্য</h2>
+<div>
+<div><label>দোকান নির্বাচন / নতুন দোকান</label><input id="shop" list="shops" placeholder="দোকানের নাম লিখুন"><datalist id="shops"></datalist></div>
+<div class="row">
+<div><label>দোকানদারের নাম (ঐচ্ছিক)</label><input id="owner" placeholder="দোকানদারের নাম"></div>
+<div><label>মোবাইল নম্বর (ঐচ্ছিক)</label><input id="phone" inputmode="tel" placeholder="01XXXXXXXXX"></div>
+</div>
+<label>দোকানের ঠিকানা (ঐচ্ছিক)</label><input id="address" placeholder="এলাকা / ঠিকানা">
+<p class="small">নতুন দোকানের নাম লিখলেই অর্ডার জমা হলে দোকানটি তালিকায় যুক্ত হবে।</p>
+</section>
+
+<section class="card">
+<h2>পণ্যের অর্ডার — পরিমাণ প্যাকেটে</h2>
+<div id="products" class="products"></div>
+<button class="green" onclick="addOrder()">অর্ডার জমা দিন</button>
+<button class="secondary" onclick="clearQty()">পরিমাণ মুছুন</button>
+<p class="small">যে পণ্যের অর্ডার আছে শুধু সেই পণ্যের পরিমাণ লিখুন।</p>
+</section>
+
+<section class="card">
+<h2>অর্ডার সামারি</h2>
+<div class="row">
+<div><div class="small">মোট অর্ডার লাইন</div><div class="stat" id="lines">0</div></div>
+<div><div class="small">মোট প্যাকেট</div><div class="stat" id="total">0</div></div>
+</div>
+<div class="scroll"><table><thead><tr><th>পণ্য</th><th>মোট প্যাকেট</th></tr></thead><tbody id="summary"></tbody></table></div>
+<div class="no-print">
+<button onclick="downloadCSV()">Excel-এ খোলার ফাইল (CSV)</button>
+<button onclick="window.print()">PDF / প্রিন্ট</button>
+<button class="secondary" onclick="exportBackup()">ডেটা ব্যাকআপ</button>
+<button class="secondary" onclick="document.getElementById('restore').click()">ব্যাকআপ ফিরিয়ে আনুন</button>
+<input id="restore" type="file" accept=".json" class="hidden" onchange="restoreBackup(event)">
+</div>
+</section>
+
+<section class="card">
+<h2>জমা দেওয়া অর্ডার</h2>
+<div class="scroll"><table><thead><tr><th>সময়</th><th>দোকান</th><th>পণ্যের অর্ডার</th><th></th></tr></thead><tbody id="orders"></tbody></table></div>
+<button class="red no-print" onclick="clearAll()">সব ডেটা মুছুন</button>
+</section>
+<footer>এই সংস্করণের তথ্য শুধু এই ব্রাউজার/ডিভাইসে সংরক্ষিত হয়। নিয়মিত ব্যাকআপ ডাউনলোড করুন।</footer>
+</main>
+<script>
+const groups={
+"Happy Nappy Diaper — Mini":["Zero","S","M","L","XL","XXL","3XL"],
+"Happy Nappy Diaper — Standard":["Zero","S","M","L","XL","XXL","3XL"],
+"Ananna":["5P Belt","8P Belt","15P Belt","8P Regular Flow","8P Heavy Flow"],
+"Baby Wipes — Canister":["120P","160P","240P"],
+"Baby Wipes — Pouch":["120P"]
+};
+const names=[];for(const [g,vs] of Object.entries(groups))vs.forEach(v=>names.push(g+" / "+v));
+let orders=JSON.parse(localStorage.getItem("safwan_orders")||"[]");
+let shops=JSON.parse(localStorage.getItem("safwan_shops")||"[]");
+function save(){localStorage.setItem("safwan_orders",JSON.stringify(orders));localStorage.setItem("safwan_shops",JSON.stringify(shops));}
+function renderProducts(){let h="";for(const [g,vs] of Object.entries(groups)){h+=`<div class="product"><strong>${g}</strong>`;vs.forEach(v=>{let key=g+" / "+v;h+=`<label>${v}</label><input type="number" min="0" step="1" inputmode="numeric" data-product="${key}" placeholder="প্যাকেট সংখ্যা">`});h+="</div>"}document.getElementById("products").innerHTML=h}
+function renderShops(){document.getElementById("shops").innerHTML=shops.map(s=>`<option value="${esc(s.name)}">`).join("")}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function addOrder(){
+ const shop=document.getElementById("shop").value.trim();
+ if(!shop){alert("দোকানের নাম লিখুন।");return}
+ const items={};document.querySelectorAll("[data-product]").forEach(i=>{let q=Math.floor(Number(i.value));if(q>0)items[i.dataset.product]=q});
+ if(!Object.keys(items).length){alert("অন্তত একটি পণ্যের পরিমাণ লিখুন।");return}
+ const info={shop,address:document.getElementById("address").value.trim()};
+ if(!shops.some(s=>s.name.toLowerCase()===shop.toLowerCase()))shops.push({name:shop,...info});
+ orders.unshift({id:Date.now(),time:new Date().toLocaleString("bn-BD"),...info,items});
+ save();render();clearQty();document.getElementById("address").value="";
+ alert("অর্ডার জমা হয়েছে।");
+}
+function clearQty(){document.querySelectorAll("[data-product]").forEach(i=>i.value="")}
+function render(){
+ renderShops();
+ let sums={};names.forEach(n=>sums[n]=0);let total=0,lines=0;
+ orders.forEach(o=>Object.entries(o.items).forEach(([k,v])=>{sums[k]=(sums[k]||0)+v;total+=v;lines++}));
+ document.getElementById("lines").textContent=lines;document.getElementById("total").textContent=total;
+ document.getElementById("summary").innerHTML=names.filter(n=>sums[n]>0).map(n=>`<tr><td>${esc(n)}</td><td>${sums[n]}</td></tr>`).join("")||'<tr><td colspan="2">এখনো কোনো অর্ডার নেই</td></tr>';
+ document.getElementById("orders").innerHTML=orders.map(o=>`<tr><td>${esc(o.time)}</td><td>${esc(o.shop)}</td><td>${Object.entries(o.items).map(([k,v])=>esc(k)+": "+v).join("<br>")}</td><td><button class="red no-print" onclick="removeOrder(${o.id})">মুছুন</button></td></tr>`).join("")||'<tr><td colspan="4">কোনো অর্ডার জমা হয়নি</td></tr>';
+}
+function removeOrder(id){if(confirm("এই অর্ডারটি মুছবেন?")){orders=orders.filter(o=>o.id!==id);save();render()}}
+function downloadCSV(){
+ let rows=[["সময়","দোকান","ঠিকানা","পণ্য","পরিমাণ (প্যাকেট)"]];
+ orders.forEach(o=>Object.entries(o.items).forEach(([k,v])=>rows.push([o.time,o.shop,o.address,k,v])));
+ let csv="\uFEFF"+rows.map(r=>r.map(x=>'"'+String(x??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+ let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="Safwan_Enterprise_Orders.csv";a.click();URL.revokeObjectURL(a.href);
+}
+function exportBackup(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({orders,shops},null,2)],{type:"application/json"}));a.download="Safwan_Enterprise_Backup.json";a.click();URL.revokeObjectURL(a.href)}
+function restoreBackup(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.orders)||!Array.isArray(d.shops))throw 0;orders=d.orders;shops=d.shops;save();render();alert("ব্যাকআপ ফিরিয়ে আনা হয়েছে।")}catch{alert("ফাইলটি সঠিক ব্যাকআপ নয়।")}};r.readAsText(f)}
+function clearAll(){if(confirm("সব অর্ডার ও দোকানের ডেটা মুছে যাবে। আগে ব্যাকআপ নিয়েছেন?")){orders=[];shops=[];save();render()}}
+renderProducts();render();
+</script>
+</body></html>

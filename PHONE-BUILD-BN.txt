@@ -1,0 +1,15 @@
+ফোন দিয়ে APK বানানোর নিয়ম (কম্পিউটার লাগবে না)
+
+১) ZIP ফাইলটি ফোনে Download করে Extract করুন।
+২) Chrome-এ https://github.com খুলে একটি অ্যাকাউন্ট তৈরি/লগইন করুন।
+৩) New repository তৈরি করুন; নাম দিন SafwanEnterprise এবং Public বা Private যেকোনোটি রাখুন।
+৪) Extract করা প্রজেক্টের ভেতরের সব ফাইল ও ফোল্ডার (বিশেষ করে .github ফোল্ডারসহ) repository-র main branch-এ Upload files দিয়ে আপলোড করুন। ZIP ফাইলটি একা আপলোড করবেন না।
+৫) Upload শেষে Actions ট্যাব খুলুন। "Build Safwan Enterprise APK" workflow নির্বাচন করে Run workflow চাপুন।
+৬) কাজ শেষ হলে সবুজ টিকসহ run-টি খুলুন। Artifacts অংশে Safwan-Enterprise-APK ডাউনলোড করুন।
+৭) ZIP artifact Extract করুন। app-debug.apk ফাইলে চাপ দিয়ে Install দিন। Android চাইলে Settings-এ ওই browser/file manager-এর "Install unknown apps" অনুমতি দিন।
+
+নোট:
+- APK তৈরি GitHub-এর cloud runner-এ হবে; ফোনে কম্পাইল করতে হবে না।
+- প্রথমবার build হতে কয়েক মিনিট লাগতে পারে।
+- Android-এর নিরাপত্তা সেটিংস অনুযায়ী APK ইনস্টল অনুমতি দিতে হবে।
+- APK-টি debug build; Play Store-এ প্রকাশের signed release build নয়।
